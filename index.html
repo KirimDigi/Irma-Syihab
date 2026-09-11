@@ -304,13 +304,20 @@ background-color: var(--menu-active);
                                                                         <li class="satumomen_slide">
                                         <div class="container-mobile " style="background-image: url(../themes/ice-silver/bg.jpg); ;">
                                             
-                                            <div class="d-flex justify-content-center align-items-center" style="height: 100%">
-    <div style="width: 100%;">
+                                            <div class="d-flex justify-content-center align-items-center" style="height: 100%; overflow-y:auto; -webkit-overflow-scrolling:touch;">
+    <div style="width: 100%; max-height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:12px 0 20px;">
       <div class="text-center">
     <div class="editable font-latin color-accent h4 mb-4 animate__animated animate__fadeInDown animate__slower">Do'a Untuk Pengantin</div>
           <div class="editable mb-4 animate__animated animate__fadeInUp animate__slower">"Semoga Allah memberkahimu di waktu bahagia dan memberkahimu di waktu susah, dan mengumpulkan kalian berdua dalam kebaikan"<br><br>[HR. Abu Daud]</div>
 
           <div class="editable mb-4 animate__animated animate__fadeInUp animate__slower">Tekan tombol dibawah ini untuk mengirim ucapan dan konfirmasi kehadiran</div><button type="button" class="btn-rsvp btn btn-primary rounded-pill mb-4 animate__animated animate__fadeInUp animate__slow" fdprocessedid="1ga9xa" style="font-size: 14px;">Konfirmasi &amp; Kirim Ucapan</button><div class="editable mb-4 animate__animated animate__fadeInUp animate__slower">Batas akhir konfirmasi<br>02 Oktober 2026</div>
+          <div class="text-center mt-2">
+            <button id="btnToggleUcapan" type="button" class="btn btn-primary rounded-pill btn-sm animate__animated animate__fadeInUp animate__slow" style="background: var(--inv-accent); border-color: var(--inv-accent); color: var(--btn-color); font-size:13px; padding:6px 18px;">Tampilkan Ucapan</button>
+          </div>
+          <div id="ucapanWrapper" style="display:none; margin-top:15px; max-height:42vh; overflow:hidden;">
+            <div id="ucapanLoading" style="font-size:12px; opacity:0.7; text-align:center; display:none; padding:8px;">Memuat ucapan...</div>
+            <div id="ucapanList" style="max-height: 38vh; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; touch-action:pan-y; text-align:left; padding:10px; background: rgba(255,255,255,0.92); border-radius:12px; border:1px solid var(--inv-border); scrollbar-width:thin; scrollbar-color: var(--inv-accent) rgba(255,255,255,0.5);"></div>
+          </div>
         </div>
     </div>
   </div>
@@ -597,6 +604,20 @@ background-color: var(--menu-active);
                     <!-- rsvp form -->
                                         <rsvp-component :lang="{&quot;invitation_code&quot;:&quot;Kode Undangan&quot;,&quot;validate_code&quot;:&quot;Validasi Kode Undangan&quot;,&quot;name&quot;:&quot;Nama&quot;,&quot;group_name&quot;:&quot;Nama Grup&quot;,&quot;phone&quot;:&quot;No Hp \/ WhatsApp&quot;,&quot;attendance&quot;:&quot;Kehadiran?&quot;,&quot;yes&quot;:&quot;Hadir&quot;,&quot;no&quot;:&quot;Tidak Hadir&quot;,&quot;guest&quot;:&quot;Orang&quot;,&quot;guest_count&quot;:&quot;Jumlah Tamu&quot;,&quot;comment&quot;:&quot;Komentar atau Ucapan&quot;,&quot;send&quot;:&quot;Kirim&quot;,&quot;update&quot;:&quot;Kirim&quot;,&quot;captcha_placeholder&quot;:&quot;Ketik Text&quot;}" :invitation_id="125890" name="Nama Tamu" code="" :replace="false" overlay="1"></rsvp-component>
                                         <!-- rsvp form -->
+                                        <!-- Google Sheet Form -->
+                                        <div id="googleFormContainer" class="mt-4 p-3" style="background: rgba(213,221,234,0.5); border-radius:12px; border:1px solid var(--inv-border);">
+                                            <div class="editable text-center font-accent mb-2" style="font-size:15px; color: var(--inv-accent); font-weight:bold;">Kirim Ucapan (Google Sheet)</div>
+                                            <form id="formUcapanGoogle" class="text-left">
+                                                <div class="mb-2"><label style="font-size:12px; color: var(--inv-base);">Nama Tamu *</label><input type="text" id="gNama" class="form-control form-control-sm" placeholder="Nama Anda" required style="border-radius:8px;"></div>
+                                                <div class="mb-2"><label style="font-size:12px; color: var(--inv-base);">Ucapan *</label><textarea id="gUcapan" class="form-control form-control-sm" rows="3" placeholder="Tulis ucapan untuk Irma & Syihab..." required style="border-radius:8px;"></textarea></div>
+                                                <div class="mb-2"><label style="font-size:12px; color: var(--inv-base);">Konfirmasi Kehadiran</label><select id="gHadir" class="form-control form-control-sm" style="border-radius:8px;"><option value="Hadir">Hadir</option><option value="Tidak Hadir">Tidak Hadir</option></select></div>
+                                                <div class="mb-2" id="gJumlahWrapper"><label style="font-size:12px; color: var(--inv-base);">Jumlah Tamu</label><input type="number" id="gJumlah" class="form-control form-control-sm" min="1" max="10" value="1" style="border-radius:8px;"></div>
+                                                <button type="submit" id="btnKirimUcapan" class="btn btn-primary btn-sm rounded-pill w-100 mt-2" style="background: var(--inv-accent); border-color: var(--inv-accent); color: var(--btn-color);"><span id="btnKirimText">Kirim Ucapan</span> <span id="btnKirimSpinner" style="display:none; margin-left:6px;"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:14px; height:14px; border-width:2px; display:inline-block; vertical-align:middle; border-style:solid; border-color: currentColor; border-right-color: transparent; border-radius:50%; animation: gSpin 0.7s linear infinite;"></span></span></button>
+                                                <div id="gStatus" style="font-size:12px; margin-top:10px; text-align:center; min-height:18px; padding:6px; border-radius:8px; display:none;"></div>
+                                                <style>@keyframes gSpin{to{transform:rotate(360deg)}}</style>
+                                            </form>
+                                        </div>
+                                        <!-- End Google Sheet Form -->
                     <button onclick="closeModal(rsvpModal)" type="button" class="btn btn-close"><svg xmlns="http://www.w3.org/2000/svg" height="42px" width="42px" fill="none" viewbox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12"></path>
                         </svg></button>
@@ -740,6 +761,227 @@ background-color: var(--menu-active);
             // override setelah themesv2.js sempat set (delay)
             setTimeout(applyGuestName, 600);
             setTimeout(applyGuestName, 1500);
+        })();
+    </script>
+    <script>
+        // Google Sheet Ucapan - Irma & Syihab
+        // GANTI URL DI BAWAH DENGAN URL DEPLOY WEB APP ANDA
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwMTctCpQNieLDpfE7BCB6jFn9FbYOsyJ17PSR7K-foLs13zCdoIcjhhI98al3mpn1VLA/exec';
+        const SHEET_ID = '1GpGzZWrxae7C449obDyXns-DR2baMOylHfkAZdD9E54';
+
+        // Toggle Tampilkan/Sembunyikan Ucapan
+        (function(){
+            const btn = document.getElementById('btnToggleUcapan');
+            const wrapper = document.getElementById('ucapanWrapper');
+            const listEl = document.getElementById('ucapanList');
+            const loadingEl = document.getElementById('ucapanLoading');
+            let isShown = false;
+            let isLoaded = false;
+
+            function escapeHtml(t){
+                const d=document.createElement('div');
+                d.textContent=t;
+                return d.innerHTML;
+            }
+            function renderUcapan(data){
+                if(!listEl) return;
+                if(!data || data.length===0){
+                    listEl.innerHTML = '<div style="text-align:center; font-size:13px; opacity:0.6; padding:20px;">Belum ada ucapan. Jadilah yang pertama! ✨</div>';
+                    return;
+                }
+                let html='';
+                data.forEach(item=>{
+                    const hadirBadge = item.kehadiran && item.kehadiran.toLowerCase().includes('tidak') 
+                        ? '<span style="background:#fee; color:#a00; font-size:10px; padding:2px 6px; border-radius:8px; margin-left:6px;">Tidak Hadir</span>'
+                        : '<span style="background:#e8f5e9; color:#2e7d32; font-size:10px; padding:2px 6px; border-radius:8px; margin-left:6px;">Hadir</span>';
+                    const jml = item.jumlah ? ' · ' + escapeHtml(String(item.jumlah)) + ' orang' : '';
+                    html += '<div style="padding:10px 12px; margin-bottom:10px; background:#fff; border-radius:10px; border:1px solid rgba(123,143,202,0.2); box-shadow:0 1px 3px rgba(0,0,0,0.05);">'
+                        + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">'
+                        + '<div style="font-weight:bold; font-size:13px; color: var(--inv-base);">' + escapeHtml(item.nama||'Anonim') + hadirBadge + '</div>'
+                        + '<div style="font-size:10px; opacity:0.5;">' + escapeHtml(item.timestamp||'') + '</div>'
+                        + '</div>'
+                        + '<div style="font-size:13px; line-height:1.4; color:#333; white-space:pre-wrap;">' + escapeHtml(item.ucapan||'') + '</div>'
+                        + '<div style="font-size:11px; opacity:0.5; margin-top:4px;">' + jml + '</div>'
+                        + '</div>';
+                });
+                listEl.innerHTML = html;
+            }
+            async function fetchUcapan(){
+                if(!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes('XXXXX')){
+                    if(listEl) listEl.innerHTML = '<div style="text-align:center; font-size:12px; color:#a00; padding:12px;">⚠️ URL Google Script belum diatur.<br>Ganti <code>GOOGLE_SCRIPT_URL</code> di index.html dengan URL deploy Web App.</div>';
+                    return;
+                }
+                if(loadingEl) loadingEl.style.display='block';
+                try{
+                    const res = await fetch(GOOGLE_SCRIPT_URL, {method:'GET'});
+                    const json = await res.json();
+                    if(json.status==='success'){
+                        renderUcapan(json.data);
+                        isLoaded=true;
+                    } else {
+                        throw new Error(json.message||'Gagal memuat');
+                    }
+                } catch(err){
+                    console.error(err);
+                    if(listEl) listEl.innerHTML = '<div style="text-align:center; font-size:12px; color:#a00; padding:12px;">Gagal memuat ucapan.<br>' + escapeHtml(err.message) + '</div>';
+                } finally {
+                    if(loadingEl) loadingEl.style.display='none';
+                }
+            }
+            if(btn && wrapper){
+                btn.addEventListener('click', async function(){
+                    isShown = !isShown;
+                    if(isShown){
+                        wrapper.style.display='block';
+                        btn.textContent='Sembunyikan Ucapan';
+                        btn.style.background='var(--inv-base)';
+                        btn.style.borderColor='var(--inv-base)';
+                        if(!isLoaded) await fetchUcapan();
+                        // scroll ke wrapper
+                        setTimeout(()=>wrapper.scrollIntoView({behavior:'smooth', block:'nearest'}),300);
+                    } else {
+                        wrapper.style.display='none';
+                        btn.textContent='Tampilkan Ucapan';
+                        btn.style.background='var(--inv-accent)';
+                        btn.style.borderColor='var(--inv-accent)';
+                    }
+                });
+            }
+            // scroll fix: cegah swipe slide saat scroll daftar ucapan
+            if(listEl){
+                const stop = e=> e.stopPropagation();
+                ['touchstart','touchmove','touchend'].forEach(ev=> listEl.addEventListener(ev, stop, {passive:true}));
+                listEl.addEventListener('wheel', stop, {passive:false});
+                // style scrollbar
+                const st=document.createElement('style');
+                st.textContent='#ucapanList::-webkit-scrollbar{width:6px}#ucapanList::-webkit-scrollbar-thumb{background:var(--inv-accent);border-radius:6px}#ucapanList::-webkit-scrollbar-track{background:rgba(255,255,255,0.5);border-radius:6px}';
+                document.head.appendChild(st);
+            }
+            if(wrapper){
+                wrapper.addEventListener('touchstart', e=> e.stopPropagation(), {passive:true});
+                wrapper.addEventListener('touchmove', e=> e.stopPropagation(), {passive:false});
+            }
+            // expose untuk refresh setelah kirim
+            window.refreshUcapan = async function(){
+                isLoaded=false;
+                await fetchUcapan();
+            };
+            window.renderUcapan = renderUcapan;
+        })();
+
+        // Form Kirim ke Google Sheet + auto hide jumlah
+        (function(){
+            const form = document.getElementById('formUcapanGoogle');
+            const statusEl = document.getElementById('gStatus');
+            const gHadir = document.getElementById('gHadir');
+            const gJumlahWrapper = document.getElementById('gJumlahWrapper');
+            const gJumlah = document.getElementById('gJumlah');
+            const btn = document.getElementById('btnKirimUcapan');
+            const btnText = document.getElementById('btnKirimText');
+            const btnSpinner = document.getElementById('btnKirimSpinner');
+            if(!form) return;
+            // auto isi nama tamu dari URL jika ada
+            const guestSlot = document.getElementById('guestNameSlot');
+            const gNama = document.getElementById('gNama');
+            function fillNama(){
+                if(gNama && guestSlot && guestSlot.textContent && guestSlot.textContent.trim()!=='Tamu Undangan'){
+                    if(!gNama.value) gNama.value = guestSlot.textContent.trim();
+                }
+            }
+            document.addEventListener('DOMContentLoaded', fillNama);
+            setTimeout(fillNama, 800);
+            setTimeout(fillNama, 1500);
+
+            // auto hide jumlah tamu jika Tidak Hadir
+            function toggleJumlah(){
+                if(!gHadir || !gJumlahWrapper) return;
+                if(gHadir.value === 'Tidak Hadir'){
+                    gJumlahWrapper.style.display='none';
+                    gJumlah.removeAttribute('required');
+                } else {
+                    gJumlahWrapper.style.display='block';
+                    gJumlah.setAttribute('required','');
+                }
+            }
+            if(gHadir){
+                gHadir.addEventListener('change', toggleJumlah);
+                toggleJumlah();
+            }
+
+            function showStatus(msg, type){
+                if(!statusEl) return;
+                statusEl.style.display='block';
+                statusEl.textContent = msg;
+                if(type==='loading'){
+                    statusEl.style.background='rgba(65,86,146,0.1)';
+                    statusEl.style.color='var(--inv-base)';
+                    statusEl.style.border='1px solid var(--inv-border)';
+                } else if(type==='success'){
+                    statusEl.style.background='#e8f5e9';
+                    statusEl.style.color='#2e7d32';
+                    statusEl.style.border='1px solid #a5d6a7';
+                } else if(type==='error'){
+                    statusEl.style.background='#ffebee';
+                    statusEl.style.color='#c62828';
+                    statusEl.style.border='1px solid #ef9a9a';
+                }
+            }
+
+            form.addEventListener('submit', async function(e){
+                e.preventDefault();
+                if(!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes('XXXXX')){
+                    showStatus('⚠️ URL Google Script belum diatur. Deploy dulu di Apps Script.', 'error');
+                    return;
+                }
+                const nama = document.getElementById('gNama').value.trim();
+                const ucapan = document.getElementById('gUcapan').value.trim();
+                const kehadiran = gHadir ? gHadir.value : 'Hadir';
+                let jumlah = gJumlah ? gJumlah.value : '1';
+                if(kehadiran === 'Tidak Hadir') jumlah = '0';
+                if(!nama || !ucapan){
+                    showStatus('Nama dan ucapan wajib diisi!', 'error');
+                    return;
+                }
+                // loading state
+                if(btn) btn.disabled=true;
+                if(btnText) btnText.textContent='Mengirim...';
+                if(btnSpinner) btnSpinner.style.display='inline-block';
+                showStatus('⏳ Mengirim ucapan... mohon tunggu', 'loading');
+                try{
+                    const payload = {nama: nama, ucapan: ucapan, kehadiran: kehadiran, jumlah: jumlah, timestamp: new Date().toISOString()};
+                    const res = await fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: {'Content-Type':'text/plain;charset=utf-8'},
+                        body: JSON.stringify(payload)
+                    });
+                    const json = await res.json();
+                    if(json.status==='success'){
+                        showStatus('✅ Berhasil! Ucapan berhasil terkirim. Terima kasih 🙏', 'success');
+                        form.reset();
+                        if(gJumlah) gJumlah.value='1';
+                        fillNama();
+                        toggleJumlah();
+                        // refresh list jika sedang tampil + reload effect
+                        const wrapper = document.getElementById('ucapanWrapper');
+                        if(wrapper && wrapper.style.display!=='none' && window.refreshUcapan){
+                            showStatus('🔄 Memuat ulang daftar ucapan...', 'loading');
+                            await window.refreshUcapan();
+                            showStatus('✅ Berhasil! Ucapan berhasil terkirim. Terima kasih 🙏', 'success');
+                        }
+                    } else {
+                        throw new Error(json.message||'Gagal mengirim');
+                    }
+                } catch(err){
+                    console.error(err);
+                    showStatus('❌ Gagal: ' + err.message, 'error');
+                } finally {
+                    if(btn) btn.disabled=false;
+                    if(btnText) btnText.textContent='Kirim Ucapan';
+                    if(btnSpinner) btnSpinner.style.display='none';
+                    // info tetap tampil 5 detik
+                    setTimeout(()=>{ if(statusEl){ statusEl.style.display='none'; statusEl.textContent=''; } },5000);
+                }
+            });
         })();
     </script>
 <script type="module" src="../beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"42907aecb4d444d4a507b1e94b6ce71b","r":1,"spa":2}' crossorigin="anonymous"></script>
