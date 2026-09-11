@@ -804,8 +804,18 @@ background-color: var(--menu-active);
                 }
                 if(loadingEl) loadingEl.style.display='block';
                 try{
-                    const res = await fetch(GOOGLE_SCRIPT_URL, {method:'GET'});
-                    const json = await res.json();
+                    const res = await fetch(GOOGLE_SCRIPT_URL, {method:'GET', redirect:'follow'});
+                    const text = await res.text();
+                    let json;
+                    try {
+                        json = JSON.parse(text);
+                    } catch(e){
+                        if(text.includes('<!DOCTYPE') || text.includes('<html') || res.status===404){
+                            throw new Error('Deployment 404. Buka Apps Script > Deploy > Manage deployments > Edit > Who has access = Anyone (bukan Anyone with Google account) & copy URL baru https://script.google.com/macros/s/.../exec lalu ganti GOOGLE_SCRIPT_URL di index.html');
+                        }
+                        throw new Error('Response bukan JSON: ' + text.substring(0,120));
+                    }
+                    if(!res.ok) throw new Error('HTTP ' + res.status + ': ' + (json.message||'Gagal'));
                     if(json.status==='success'){
                         renderUcapan(json.data);
                         isLoaded=true;
@@ -814,7 +824,9 @@ background-color: var(--menu-active);
                     }
                 } catch(err){
                     console.error(err);
-                    if(listEl) listEl.innerHTML = '<div style="text-align:center; font-size:12px; color:#a00; padding:12px;">Gagal memuat ucapan.<br>' + escapeHtml(err.message) + '</div>';
+                    let msg = err.message;
+                    if(msg.includes('Failed to fetch')) msg += ' (cek URL deploy & internet)';
+                    if(listEl) listEl.innerHTML = '<div style="text-align:center; font-size:12px; color:#a00; padding:12px; line-height:1.5;">Gagal memuat ucapan.<br><span style="font-size:11px; opacity:0.8;">' + escapeHtml(msg) + '</span><br><br><span style="font-size:11px; background:#fff; padding:4px 8px; border-radius:6px; border:1px solid #ddd;">Buka <b>index.html:769</b> ganti GOOGLE_SCRIPT_URL</span></div>';
                 } finally {
                     if(loadingEl) loadingEl.style.display='none';
                 }
@@ -943,9 +955,18 @@ background-color: var(--menu-active);
                     const res = await fetch(GOOGLE_SCRIPT_URL, {
                         method: 'POST',
                         headers: {'Content-Type':'text/plain;charset=utf-8'},
-                        body: JSON.stringify(payload)
+                        body: JSON.stringify(payload),
+                        redirect:'follow'
                     });
-                    const json = await res.json();
+                    const text = await res.text();
+                    let json;
+                    try{ json = JSON.parse(text); } catch(e){
+                        if(text.includes('<!DOCTYPE') || res.status===404){
+                            throw new Error('Deployment 404 / HTML. Redeploy Apps Script dengan Who has access = Anyone dan copy URL /exec baru.');
+                        }
+                        throw new Error('Response bukan JSON: ' + text.substring(0,120));
+                    }
+                    if(!res.ok) throw new Error('HTTP ' + res.status);
                     if(json.status==='success'){
                         showStatus('✅ Berhasil! Ucapan berhasil terkirim. Terima kasih 🙏', 'success');
                         form.reset();
@@ -964,13 +985,15 @@ background-color: var(--menu-active);
                     }
                 } catch(err){
                     console.error(err);
-                    showStatus('❌ Gagal: ' + err.message, 'error');
+                    let msg = err.message;
+                    if(msg.includes('Failed to fetch')) msg += ' (cek URL deploy & internet)';
+                    showStatus('❌ Gagal: ' + msg, 'error');
                 } finally {
                     if(btn) btn.disabled=false;
                     if(btnText) btnText.textContent='Kirim Ucapan';
                     if(btnSpinner) btnSpinner.style.display='none';
                     // info tetap tampil 5 detik
-                    setTimeout(()=>{ if(statusEl){ statusEl.style.display='none'; statusEl.textContent=''; } },5000);
+                    setTimeout(()=>{ if(statusEl){ statusEl.style.display='none'; statusEl.textContent=''; } },6000);
                 }
             });
         })();
